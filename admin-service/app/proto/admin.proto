@@ -1,0 +1,152 @@
+// Copyright 2024 Taufik Hidayat authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax="proto3";
+
+// AdminService defines the gRPC service for managing administrator accounts. 
+// It includes methods for registration, login, retrieval, and updates of admin details.
+package admin;
+
+// Importing necessary protobuf types for timestamps and structured data.
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// AdminService defines the gRPC service for managing administrator accounts. 
+// It includes methods for registration, login, retrieval, and updates of admin details.
+service AdminService {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc Get(GetRequest) returns (GetResponse) {}
+    rpc Update(UpdateRequest) returns (UpdateResponse) {}
+    rpc List(ListRequest) returns (stream Admin) {}
+}
+
+// RegisterRequest contains the necessary information for creating a new admin account. 
+// It includes validation rules for each field, such as required fields and format constraints.
+message RegisterRequest {
+    string email = 1;
+    string password = 2;
+    string password_confirm = 3;
+    string first_name = 4;
+    string last_name = 5;
+    optional google.protobuf.Struct properties = 6;
+    optional string platform_id = 7;
+}
+
+// RegisterResponse returns the newly created admin details upon successful registration. 
+// If there are validation errors, it returns a list of field-specific errors.
+message RegisterResponse {
+    oneof response {
+        Admin success = 1;
+        ValidationError error = 2;
+    }
+}
+
+// LoginResponse returns an authentication token upon successful login. 
+// If the credentials are invalid, it returns a validation error.
+message LoginResponse {
+    oneof response {
+        AdminToken success = 1;
+        ValidationError error = 2;
+    }
+}
+
+// GetResponse returns the admin details for a given ID.
+// If the admin is not found, it returns a validation error.
+message GetResponse {
+    oneof response {
+        Admin success = 1;
+        ValidationError error = 2;
+    }
+}
+
+// UpdateResponse allows for partial updates to admin fields. 
+// Only provided fields will be updated.
+message UpdateResponse {
+    oneof response {
+        Admin success = 1;
+        ValidationError error = 2;
+    }
+}
+
+// Admin represents the administrator user with relevant fields and metadata.
+message Admin {
+    string id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    string email = 4;
+    string first_name = 5;
+    string last_name = 6;
+    google.protobuf.Struct properties = 7;
+    bool is_active = 8;
+    bool is_superadmin = 9;
+    string platform_id = 10;
+}
+
+// LoginRequest contains the credentials required for an admin to authenticate.
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+// AdminToken represents the authentication token returned upon successful login.
+message AdminToken {
+    string token = 1;
+}
+
+// GetRequest retrieves an admin by their unique ID.
+message GetRequest {
+    string id = 1;
+}
+
+// UpdateRequest allows partial updates to admin fields. 
+// Only provided fields will be updated.
+message UpdateRequest {
+    string id = 1;
+    optional string email = 2;
+    optional string password = 3;
+    optional string password_confirm = 4;
+    optional string first_name = 5;
+    optional string last_name = 6;
+    optional bool is_superadmin = 7;
+    optional bool is_active = 8;
+}
+
+// ListRequest is used to fetch a paginated/filtered list of admins.
+message ListRequest {
+    string order_by = 1; // field to order by (allowed fields: id, created_at, updated_at, email, first_name, last_name, is_active, is_superadmin, platform_id, properties)
+    int32 limit = 2;
+    int32 offset = 3;
+    map<string, string> filters = 4; // simple equality filters for top-level columns
+    map<string, string> property_filters = 5; // equality filters against JSONB properties (properties ->> key = value)
+    map<string, StringList> property_in_filters = 6; // property keys with list-of-values (ANY(...))
+}
+
+// Helper message to carry a list of strings for map values.
+message StringList {
+    repeated string values = 1;
+}
+
+// ValidationError provides a structured way to return validation errors for API requests.
+message ValidationError {
+    repeated FieldError field_errors = 1; // List of field-specific validation errors
+    string message = 2; // A general error message summarizing the validation failure
+}
+
+// FieldError represents a specific validation error for a single field, including the field name, error code, and a human-readable message.
+message FieldError {
+    string field = 1; // The name of the field that caused the error
+    string code = 2; // A machine-readable error code (e.g., "required", "invalid_format")
+    string message = 3; // A human-readable error message   
+}

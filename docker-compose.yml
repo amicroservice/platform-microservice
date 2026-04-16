@@ -1,0 +1,133 @@
+# Copyright 2024 Taufik Hidayat authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+services:
+
+  db-service:
+    image: postgis/postgis:17-master
+    container_name: db-service
+    volumes:
+      - ./db-service/local/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432"
+    networks:
+      - platform-microservice
+
+  migration-service:
+    build: ./db-service
+    container_name: migration-service
+    volumes:
+      - ./db-service:/app
+    networks:
+      - platform-microservice
+
+  admin-service:
+    build: ./admin-service
+    container_name: admin-service
+    volumes:
+      - ./admin-service:/app
+    environment:
+      - APP_NAME=admin-service
+      - GRPC_PORT=50051
+      - SUPER_ADMIN_EMAIL=admin@platfom-microservice.com
+      - DSN=postgresql://postgres:postgres@db-service:5432/postgres
+      - METRICS_PORT=8000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tempo
+    networks:
+      - platform-microservice
+
+  proxy-service:
+    build: ./proxy-service
+    container_name: proxy-service
+    image: grpcweb/envoy
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    networks:
+      - platform-microservice
+
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: loki
+    command: -config.file=/etc/loki/loki.yaml
+    volumes:
+      - ./config/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+      - loki-wal:/wal
+    ports:
+      - "3100:3100"
+    networks:
+      - platform-microservice
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: -config.file=/etc/tempo/tempo.yaml
+    volumes:
+      - ./config/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+    networks:
+      - platform-microservice
+
+  mimir:
+    image: grafana/mimir:latest
+    container_name: mimir
+    command: -config.file=/etc/mimir/mimir.yaml
+    volumes:
+      - ./config/mimir/mimir.yaml:/etc/mimir/mimir.yaml:ro
+      - mimir-data:/mimir
+    ports:
+      - "9090:9090"
+    networks:
+      - platform-microservice
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-storage:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+      - tempo
+      - mimir
+    networks:
+      - platform-microservice
+
+networks:
+  platform-microservice:
+
+volumes:
+  grafana-storage:
+  loki-data:
+  loki-wal:
+  tempo-data:
+  mimir-data:

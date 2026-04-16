@@ -1,0 +1,97 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+*.egg-info/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.tox/
+.nox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.coverage
+coverage.xml
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# dotenv / environment variables
+.env
+.env.*
+
+# Virtualenvs
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and editors
+.vscode/
+.idea/
+.spyproject/
+.ropeproject/
+.devcontainer/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Local DB data (Postgres)
+db-service/local/
+local/
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+.dockerignore
+
+# Node
+node_modules/
+
+# Build artifacts
+*.class
+*.jar
+*.war
+
+# Secrets and certificates
+*.pem
+*.key
+*.crt
+
+# Misc caches
+.cache/
+coverage/

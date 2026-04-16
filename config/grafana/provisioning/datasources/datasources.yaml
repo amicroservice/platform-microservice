@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    url: http://loki:3100
+    editable: false
+
+  - name: Tempo
+    type: tempo
+    url: http://tempo:3200
+    editable: false
+
+  - name: Mimir
+    type: prometheus
+    url: http://mimir:9090/prometheus
+    editable: false

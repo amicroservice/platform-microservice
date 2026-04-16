@@ -1,0 +1,39 @@
+multitenancy_enabled: false
+
+server:
+  http_listen_port: 9090
+  grpc_listen_port: 9095
+
+distributor:
+  ring:
+    kvstore:
+      store: inmemory
+
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: /mimir/blocks
+  tsdb:
+    dir: /mimir/tsdb
+
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+
+compactor:
+  data_dir: /mimir/compactor
+  sharding_ring:
+    kvstore:
+      store: inmemory
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /mimir/rules

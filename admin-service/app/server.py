@@ -16,12 +16,13 @@ import asyncio
 import os
 
 import grpc
-import proto.admin_pb2_grpc as admin_pb2_grpc
-from db.pool import Database
-from db.tables.admin import AdminTable
 from services.admin import AdminService
 from utils.logger import Logger
 from utils.observability import setup_observability
+
+import proto.admin_pb2_grpc as admin_pb2_grpc
+from db.pool import Database
+from db.tables.admin import AdminTable
 
 
 # Function to start and run the gRPC server
@@ -32,6 +33,8 @@ async def serve():
     jwt_secret = os.getenv("JWT_SECRET")
     dsn = os.getenv("DSN")
     super_admin_email = os.getenv("SUPER_ADMIN_EMAIL")
+    jwt_secret = os.getenv("JWT_SECRET")
+    jwt_expiration_hours = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
     # Setting logging
     logger = Logger(name=app_name)
@@ -54,6 +57,7 @@ async def serve():
         logger=logger,
         admin_table=admin_table,
         jwt_secret=jwt_secret,
+        jwt_expiration_hours=jwt_expiration_hours,
         super_admin_email=super_admin_email,
     )
 
@@ -61,7 +65,7 @@ async def serve():
     admin_table = AdminTable(logger=logger, database=database)
 
     # Start the async gRPC server
-    max_message_size = 200 * 1024 * 1024  # 200 MiB
+    max_message_size = 128 * 1024  # 128 KiB
     server = grpc.aio.server(
         options=[
             ("grpc.max_receive_message_length", max_message_size),

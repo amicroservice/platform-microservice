@@ -1,0 +1,29 @@
+metrics:
+  wal_directory: /tmp/agent/wal
+  global:
+    scrape_interval: 15s
+  configs:
+    - name: default
+      scrape_configs:
+        - job_name: admin-service
+          static_configs:
+            - targets: ['admin-service:8001']
+              labels:
+                job: admin-service
+      remote_write:
+        - url: http://mimir:9090/api/v1/push
+
+logs:
+  configs:
+    - name: default
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+      positions:
+        filename: /tmp/positions.yaml
+      scrape_configs:
+        - job_name: admin-service-logs
+          static_configs:
+            - targets: ['localhost']
+              labels:
+                job: admin-service
+                __path__: /var/log/admin-service/admin-service.log

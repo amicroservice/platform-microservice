@@ -15,8 +15,9 @@
 from typing import Any, Optional
 
 import asyncpg
-from db.pool import Database
 from utils.logger import Logger
+
+from db.pool import Database
 
 
 class AdminInviteTable:

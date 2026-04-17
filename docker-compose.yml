@@ -36,6 +36,24 @@ services:
     networks:
       - platform-microservice
 
+  platform-service:
+    build: ./platform-service
+    container_name: platform-service
+    volumes:
+      - ./platform-service:/app
+    environment:
+      - APP_NAME=platform-service
+      - GRPC_PORT=50050
+      - DSN=postgresql://postgres:postgres@db-service:5432/postgres
+      - METRICS_PORT=8000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tempo
+    networks:
+      - platform-microservice
+
   admin-service:
     build: ./admin-service
     container_name: admin-service
@@ -46,10 +64,12 @@ services:
       - GRPC_PORT=50051
       - SUPER_ADMIN_EMAIL=admin@platfom-microservice.com
       - DSN=postgresql://postgres:postgres@db-service:5432/postgres
-      - METRICS_PORT=8000
+      - METRICS_PORT=8001
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - JWT_SECRET=secret
+      - JWT_EXPIRATION_HOURS=24
     ports:
-      - "8000:8000"
+      - "8001:8001"
     depends_on:
       - tempo
     networks:
@@ -122,11 +142,29 @@ services:
     networks:
       - platform-microservice
 
+  grafana-agent:
+    image: grafana/agent:latest
+    container_name: grafana-agent
+    volumes:
+      - ./config/grafana-agent/agent.yaml:/etc/agent/agent.yaml:ro
+      - ./admin-service:/var/log/admin-service:ro
+      - grafana-agent-data:/tmp/grafana-agent
+    ports:
+      - "12345:12345"
+    depends_on:
+      - admin-service
+      - mimir
+      - loki
+      - tempo
+    networks:
+      - platform-microservice
+
 networks:
   platform-microservice:
 
 volumes:
   grafana-storage:
+  grafana-agent-data:
   loki-data:
   loki-wal:
   tempo-data:

@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from typing import Any, AsyncIterator, Optional
 
 import asyncpg
 import bcrypt
-import json
+from utils.logger import Logger
+
 from db.models.admin import AdminCreate, AdminInDB, AdminRead, AdminUpdate
 from db.pool import Database
-from utils.logger import Logger
 
 
 class AdminTable:
@@ -165,6 +166,7 @@ class AdminTable:
                     SELECT id, created_at, updated_at, email, first_name, last_name, is_active, is_superadmin, platform_id, properties, password_hash
                     FROM admins
                     WHERE lower(email) = lower($1)
+                    ORDER BY is_superadmin DESC
                     LIMIT 1
                     """,
                     email,
@@ -201,6 +203,60 @@ class AdminTable:
         except asyncpg.PostgresError as e:
             self.logger.error(
                 f"{__name__}: Error retrieving admin by email {email} - {e}"
+            )
+            raise e
+
+    async def get_by_email_and_platform(
+        self, email: str, platform_id
+    ) -> Optional[AdminInDB]:
+        """Retrieve admin by email scoped to a specific platform (includes password hash)."""
+        self.ready()
+
+        try:
+            async with self.database.pool.acquire() as connection:
+                record = await connection.fetchrow(
+                    """
+                    SELECT id, created_at, updated_at, email, first_name, last_name, is_active, is_superadmin, platform_id, properties, password_hash
+                    FROM admins
+                    WHERE lower(email) = lower($1) AND platform_id = $2
+                    ORDER BY is_superadmin DESC
+                    LIMIT 1
+                    """,
+                    email,
+                    platform_id,
+                )
+
+                if not record:
+                    return None
+
+                raw_props = record["properties"]
+                if raw_props is None:
+                    props = {}
+                elif isinstance(raw_props, str):
+                    try:
+                        props = json.loads(raw_props)
+                    except Exception:
+                        props = {}
+                else:
+                    props = raw_props
+
+                return AdminInDB(
+                    id=record["id"],
+                    created_at=record["created_at"],
+                    updated_at=record["updated_at"],
+                    email=record["email"],
+                    first_name=record["first_name"],
+                    last_name=record["last_name"],
+                    properties=props or {},
+                    is_active=record["is_active"],
+                    is_superadmin=record["is_superadmin"],
+                    platform_id=record["platform_id"],
+                    password_hash=bytes(record["password_hash"]),
+                )
+
+        except asyncpg.PostgresError as e:
+            self.logger.error(
+                f"{__name__}: Error retrieving admin by email {email} and platform {platform_id} - {e}"
             )
             raise e
 

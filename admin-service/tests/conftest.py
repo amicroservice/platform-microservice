@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Core
-psycopg2-binary==2.9.10
-yoyo-migrations==9.0.0
+import os
+import sys
 
-# Test
-ipython==8.29.0
+# Ensure the admin-service directory is on sys.path so `import app` works
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+# Also add the packaged `app` folder so generated `proto` modules importing
+# top-level `proto` can be resolved (they expect `proto` on sys.path).
+APP_DIR = os.path.abspath(os.path.join(ROOT, "app"))
+if APP_DIR not in sys.path:
+    sys.path.insert(0, APP_DIR)

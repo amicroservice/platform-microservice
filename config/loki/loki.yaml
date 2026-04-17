@@ -4,6 +4,7 @@ server:
 ingester:
   lifecycler:
     ring:
+      replication_factor: 1
       kvstore:
         store: inmemory
   wal:

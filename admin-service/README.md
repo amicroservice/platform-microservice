@@ -1,6 +1,6 @@
 # Admin Service
 
-This service implements admin user management and authentication for the Platform Microservice repository. It currently implements the `Register` and `Login` flows and includes runnable end-to-end tests.
+This service implements admin user management and authentication for the Platform Microservice repository. It implements the `Register` and `Login` flows and other admin APIs; all endpoints are implemented and covered by unit and end-to-end tests.
 
 gRPC & Technology stack
 
@@ -15,7 +15,7 @@ The admin service uses the same core stacks as the repo (see `admin-service/requ
 
 Microservice status
 
-- `admin-service` — Admin user management and authentication. Current status: implemented through the `Register` flow and E2E test; additional admin endpoints still pending.
+- `admin-service` — Admin user management and authentication. Current status: implemented; all endpoints completed and covered by unit and end-to-end tests.
 
 Running & testing this service (recommended — use Docker Compose)
 
@@ -76,7 +76,7 @@ docker-compose up -d admin-service
 docker-compose exec admin-service grpcurl -plaintext \
   -import-path /app/app/proto \
   -proto admin.proto \
-  -d '{"email":"admin@platfom-microservice.com","password":"s3c!reT1","password_confirm":"s3c!reT1","first_name":"Admin","last_name":"Platform"}' \
+  -d '{"email":"admin@platform-microservice.com","password":"s3c!reT1","password_confirm":"s3c!reT1","first_name":"Admin","last_name":"Platform"}' \
   proxy-service:8080 admin.AdminService/Register
 ```
 
@@ -86,9 +86,62 @@ docker-compose exec admin-service grpcurl -plaintext \
 docker-compose exec admin-service grpcurl -plaintext \
   -import-path /app/app/proto \
   -proto admin.proto \
-  -d '{"email":"admin@platfom-microservice.com","password":"s3c!reT1"}' \
+  -d '{"email":"admin@platform-microservice.com","password":"s3c!reT1"}' \
   proxy-service:8080 admin.AdminService/Login
 ```
+Authentication note: `Get`, `Update`, and `List` require authentication — pass a valid JWT as the `authorization` metadata header (`Bearer <token>`).
+
+Obtain a token via `Login` and store it in `TOKEN` (example uses `jq` to extract the JSON token; adjust the `jq` path if your grpcurl output differs):
+
+```bash
+TOKEN=$(docker-compose exec admin-service grpcurl -plaintext \
+  -import-path /app/app/proto \
+  -proto admin.proto \
+  -d '{"email":"admin@platform-microservice.com","password":"s3c!reT1"}' \
+  proxy-service:8080 admin.AdminService/Login | jq -r '.success.token')
+```
+
+4. Call the `Get` RPC (example) with `authorization` header; omit `id` to retrieve the current authenticated admin and extract `ADMIN_ID` from the response:
+
+```bash
+ADMIN_ID=$(docker-compose exec admin-service grpcurl -plaintext -H "authorization: Bearer $TOKEN" \
+  -import-path /app/app/proto \
+  -proto admin.proto \
+  -d '{}' \
+  proxy-service:8080 admin.AdminService/Get | jq -r '.success.id')
+```
+
+5. Call the `Update` RPC (example) with `authorization` header (use the `ADMIN_ID` extracted above):
+
+```bash
+docker-compose exec admin-service grpcurl -plaintext -H "authorization: Bearer $TOKEN" \
+  -import-path /app/app/proto \
+  -proto admin.proto \
+  -d "{\"id\":\"$ADMIN_ID\",\"email\":\"new@example.com\",\"first_name\":\"New\",\"last_name\":\"Name\"}" \
+  proxy-service:8080 admin.AdminService/Update
+```
+
+6. Call the `List` RPC (example) — uses `limit`/`offset` and filters per `ListRequest` — include `authorization` header:
+
+```bash
+docker-compose exec admin-service grpcurl -plaintext -H "authorization: Bearer $TOKEN" \
+  -import-path /app/app/proto \
+  -proto admin.proto \
+  -d '{"limit":50,"offset":0,"order_by":"created_at"}' \
+  proxy-service:8080 admin.AdminService/List
+```
+
+Filter example (by top-level column):
+
+```bash
+docker-compose exec admin-service grpcurl -plaintext \
+  -import-path /app/app/proto \
+  -proto admin.proto \
+  -d '{"filters":{"email":"admin@platform-microservice.com"}}' \
+  proxy-service:8080 admin.AdminService/List
+```
+
+If you want all admins with no filters, use `-d '{}'`.
 
 Useful files
 
@@ -101,5 +154,3 @@ Troubleshooting
 
 - If migrations fail because objects already exist, inspect the DB state and re-run migrations as needed.
 - If the admin container cannot connect to `db-service`, ensure `db-service` is running: `docker-compose up -d db-service` and check `docker-compose logs db-service` or `docker-compose ps`.
-
-If you want, I can run the E2E test now inside the `admin-service` container. Want me to run it?

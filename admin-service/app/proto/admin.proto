@@ -108,7 +108,10 @@ message AdminToken {
 
 // GetRequest retrieves an admin by their unique ID.
 message GetRequest {
-    string id = 1;
+    // If `id` is omitted, the server will use the authenticated token's `sub` claim
+    // as the target admin id (so clients can call Get for the current user without
+    // supplying an explicit id).
+    optional string id = 1;
 }
 
 // UpdateRequest allows partial updates to admin fields. 

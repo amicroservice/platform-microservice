@@ -49,6 +49,12 @@ static_resources:
                             timeout: 0s
                             max_stream_duration:
                               grpc_timeout_header_max: 0s
+                        - match: { prefix: "/platform.PlatformService" }
+                          route:
+                            cluster: platform-service
+                            timeout: 0s
+                            max_stream_duration:
+                              grpc_timeout_header_max: 0s
                       cors:
                         # If you use cookies in dev, switch to explicit origins and set allow_credentials: true
                         allow_origin_string_match:
@@ -79,6 +85,25 @@ static_resources:
                   allow_chunked_length: true
 
   clusters:
+    - name: platform-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: platform-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: platform-service
+                      port_value: 50050
+
     - name: admin-service
       connect_timeout: 0.25s
       type: logical_dns

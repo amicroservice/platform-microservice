@@ -34,10 +34,10 @@ Getting started
 This project is organized as a collection of independent microservices. Each service has its own source, dependencies, container image, and lifecycle so services can be developed, tested, and deployed independently.
 
 Current and planned services (examples):
-- `admin-service` — Admin user management and authentication. Current status: implemented through the `Register` flow and E2E test; additional admin endpoints still pending.
+- `admin-service` — Admin user management and authentication. Current status: implemented; all endpoints completed and covered by unit and end-to-end tests.
 - `admin-invite-service` — Planned service to create, send, and validate admin invites.
 - `user-service` — Planned service to manage regular user accounts and profiles.
-- `platform-service` — Planned service for platform-level orchestration and shared APIs.
+- `platform-service` — Implemented; all endpoints completed and covered by unit and end-to-end tests.
 - `db-service` — Postgres instance and migrations used by services.
 - `proxy-service` — Envoy-based proxy that routes gRPC requests to individual services.
 
@@ -160,12 +160,15 @@ docker-compose down
 
 ## Manual RPCs (grpcurl)
 
-Service-level RPC examples (grpcurl) are documented in each service README. For `admin-service`, see `admin-service/README.md`.
+Service-level RPC examples (grpcurl) are documented in each service README: 
+- For `admin-service`, see [admin-service/README.md](admin-service/README.md). 
+- For `platform-service`, see [platform-service/README.md](platform-service/README.md).
 
 Useful files
 - [db-service/yoyo.ini](db-service/yoyo.ini)
 - [db-service/migrations](db-service/migrations)
-- [admin-service/README.md](admin-service/README.md)
 - [config/grafana/provisioning](config/grafana/provisioning)
 
-If you'd like, I can run the E2E test in the repo for you (I will need Docker available and permission to run containers). Would you like me to run it now?
+## Need help?
+
+If you need assistance with this repository — for example, how to run Docker Compose, how to implement a new microservice, or any other question related to this project — please open an Issue on this repository's GitHub. Include relevant details (error messages, commands you ran, and logs) so we can help quickly. We'll respond as soon as possible.

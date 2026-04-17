@@ -814,8 +814,16 @@ class AdminService(admin_pb2_grpc.AdminServiceServicer):
         if payload.get("is_superadmin"):
             return payload
 
-        # Allow admin tokens when explicitly permitted
-        if allow_admin_token and role == "admin":
+        # Allow admin tokens when explicitly permitted, but only when this call
+        # is being used to *retrieve* the JWT payload (no target constraints).
+        # When `target_id` or `target_platform` are provided we must still
+        # enforce ownership/platform checks.
+        if (
+            allow_admin_token
+            and role == "admin"
+            and not target_id
+            and not target_platform
+        ):
             return payload
 
         # Allow if subject matches target_id (resource owner)
@@ -848,8 +856,19 @@ class AdminService(admin_pb2_grpc.AdminServiceServicer):
 
     async def Get(self, request, context):
         with tracer.start_as_current_span("AdminService.Get"):
-            # Fetch target admin first; if not found, return not found without requiring auth
-            admin = await self.admin_table.get(request.id)
+            # Determine target id: use request.id when provided, otherwise use the
+            # authenticated token `sub` claim. Treat empty string as omitted.
+            target_id = getattr(request, "id", "") or None
+
+            # If no id supplied, require a valid token and use its `sub` claim
+            if not target_id:
+                payload = await self._require_admin_or_superadmin(
+                    context, allow_admin_token=True
+                )
+                target_id = str(payload.get("sub"))
+
+            # Fetch target admin; if not found, return not found
+            admin = await self.admin_table.get(target_id)
             if not admin:
                 field_err = admin_pb2.FieldError(
                     field="id", code="not_found", message="Admin not found"
@@ -862,9 +881,10 @@ class AdminService(admin_pb2_grpc.AdminServiceServicer):
             # Authorize via helper: allow superadmin, owner, or same-platform admin
             await self._require_admin_or_superadmin(
                 context,
-                target_id=request.id,
+                target_id=target_id,
                 target_platform=(str(admin.platform_id) if admin.platform_id else None),
                 allow_same_platform=True,
+                allow_admin_token=True,
             )
 
             created_ts = Timestamp()

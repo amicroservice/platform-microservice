@@ -20,6 +20,11 @@ metrics:
             - targets: ['admin-invite-service:8002']
               labels:
                 job: admin-invite-service
+        - job_name: user-service
+          static_configs:
+            - targets: ['user-service:8003']
+              labels:
+                job: user-service
       remote_write:
         - url: http://mimir:9090/api/v1/push
 
@@ -49,3 +54,9 @@ logs:
               labels:
                 job: admin-invite-service
                 __path__: /var/log/admin-invite-service/admin-invite-service.log
+        - job_name: user-service-logs
+          static_configs:
+            - targets: ['localhost']
+              labels:
+                job: user-service
+                __path__: /var/log/user-service/user-service.log

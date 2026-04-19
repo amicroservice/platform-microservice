@@ -61,6 +61,12 @@ static_resources:
                             timeout: 0s
                             max_stream_duration:
                               grpc_timeout_header_max: 0s
+                        - match: { prefix: "/user.UserService" }
+                          route:
+                            cluster: user-service
+                            timeout: 0s
+                            max_stream_duration:
+                              grpc_timeout_header_max: 0s
                       cors:
                         # If you use cookies in dev, switch to explicit origins and set allow_credentials: true
                         allow_origin_string_match:
@@ -147,4 +153,23 @@ static_resources:
                     socket_address:
                       address: admin-invite-service
                       port_value: 50052
+
+    - name: user-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: user-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: user-service
+                      port_value: 50053
 

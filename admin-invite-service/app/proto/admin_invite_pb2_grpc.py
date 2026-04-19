@@ -3,7 +3,7 @@
 
 import grpc
 
-import proto.admin_pb2 as admin__pb2
+import proto.admin_invite_pb2 as admin__invite__pb2
 
 GRPC_GENERATED_VERSION = "1.67.1"
 GRPC_VERSION = grpc.__version__
@@ -21,17 +21,15 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f"The grpc package installed is at version {GRPC_VERSION},"
-        + " but the generated code in admin_pb2_grpc.py depends on"
+        + " but the generated code in admin_invite_pb2_grpc.py depends on"
         + f" grpcio>={GRPC_GENERATED_VERSION}."
         + f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
         + f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}."
     )
 
 
-class AdminServiceStub(object):
-    """AdminService defines the gRPC service for managing administrator accounts.
-    It includes methods for registration, login, retrieval, and updates of admin details.
-    """
+class AdminInviteServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -39,50 +37,36 @@ class AdminServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Register = channel.unary_unary(
-            "/admin.AdminService/Register",
-            request_serializer=admin__pb2.RegisterRequest.SerializeToString,
-            response_deserializer=admin__pb2.RegisterResponse.FromString,
-            _registered_method=True,
-        )
-        self.Login = channel.unary_unary(
-            "/admin.AdminService/Login",
-            request_serializer=admin__pb2.LoginRequest.SerializeToString,
-            response_deserializer=admin__pb2.LoginResponse.FromString,
+        self.Create = channel.unary_unary(
+            "/admin_invite.AdminInviteService/Create",
+            request_serializer=admin__invite__pb2.CreateRequest.SerializeToString,
+            response_deserializer=admin__invite__pb2.CreateResponse.FromString,
             _registered_method=True,
         )
         self.Get = channel.unary_unary(
-            "/admin.AdminService/Get",
-            request_serializer=admin__pb2.GetRequest.SerializeToString,
-            response_deserializer=admin__pb2.GetResponse.FromString,
+            "/admin_invite.AdminInviteService/Get",
+            request_serializer=admin__invite__pb2.GetRequest.SerializeToString,
+            response_deserializer=admin__invite__pb2.GetResponse.FromString,
             _registered_method=True,
         )
-        self.Update = channel.unary_unary(
-            "/admin.AdminService/Update",
-            request_serializer=admin__pb2.UpdateRequest.SerializeToString,
-            response_deserializer=admin__pb2.UpdateResponse.FromString,
+        self.Delete = channel.unary_unary(
+            "/admin_invite.AdminInviteService/Delete",
+            request_serializer=admin__invite__pb2.DeleteRequest.SerializeToString,
+            response_deserializer=admin__invite__pb2.DeleteResponse.FromString,
             _registered_method=True,
         )
         self.List = channel.unary_stream(
-            "/admin.AdminService/List",
-            request_serializer=admin__pb2.ListRequest.SerializeToString,
-            response_deserializer=admin__pb2.Admin.FromString,
+            "/admin_invite.AdminInviteService/List",
+            request_serializer=admin__invite__pb2.ListRequest.SerializeToString,
+            response_deserializer=admin__invite__pb2.AdminInvite.FromString,
             _registered_method=True,
         )
 
 
-class AdminServiceServicer(object):
-    """AdminService defines the gRPC service for managing administrator accounts.
-    It includes methods for registration, login, retrieval, and updates of admin details.
-    """
+class AdminInviteServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
 
-    def Register(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
-
-    def Login(self, request, context):
+    def Create(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
@@ -94,7 +78,7 @@ class AdminServiceServicer(object):
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
-    def Update(self, request, context):
+    def Delete(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
@@ -107,49 +91,44 @@ class AdminServiceServicer(object):
         raise NotImplementedError("Method not implemented!")
 
 
-def add_AdminServiceServicer_to_server(servicer, server):
+def add_AdminInviteServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-        "Register": grpc.unary_unary_rpc_method_handler(
-            servicer.Register,
-            request_deserializer=admin__pb2.RegisterRequest.FromString,
-            response_serializer=admin__pb2.RegisterResponse.SerializeToString,
-        ),
-        "Login": grpc.unary_unary_rpc_method_handler(
-            servicer.Login,
-            request_deserializer=admin__pb2.LoginRequest.FromString,
-            response_serializer=admin__pb2.LoginResponse.SerializeToString,
+        "Create": grpc.unary_unary_rpc_method_handler(
+            servicer.Create,
+            request_deserializer=admin__invite__pb2.CreateRequest.FromString,
+            response_serializer=admin__invite__pb2.CreateResponse.SerializeToString,
         ),
         "Get": grpc.unary_unary_rpc_method_handler(
             servicer.Get,
-            request_deserializer=admin__pb2.GetRequest.FromString,
-            response_serializer=admin__pb2.GetResponse.SerializeToString,
+            request_deserializer=admin__invite__pb2.GetRequest.FromString,
+            response_serializer=admin__invite__pb2.GetResponse.SerializeToString,
         ),
-        "Update": grpc.unary_unary_rpc_method_handler(
-            servicer.Update,
-            request_deserializer=admin__pb2.UpdateRequest.FromString,
-            response_serializer=admin__pb2.UpdateResponse.SerializeToString,
+        "Delete": grpc.unary_unary_rpc_method_handler(
+            servicer.Delete,
+            request_deserializer=admin__invite__pb2.DeleteRequest.FromString,
+            response_serializer=admin__invite__pb2.DeleteResponse.SerializeToString,
         ),
         "List": grpc.unary_stream_rpc_method_handler(
             servicer.List,
-            request_deserializer=admin__pb2.ListRequest.FromString,
-            response_serializer=admin__pb2.Admin.SerializeToString,
+            request_deserializer=admin__invite__pb2.ListRequest.FromString,
+            response_serializer=admin__invite__pb2.AdminInvite.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        "admin.AdminService", rpc_method_handlers
+        "admin_invite.AdminInviteService", rpc_method_handlers
     )
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers("admin.AdminService", rpc_method_handlers)
+    server.add_registered_method_handlers(
+        "admin_invite.AdminInviteService", rpc_method_handlers
+    )
 
 
 # This class is part of an EXPERIMENTAL API.
-class AdminService(object):
-    """AdminService defines the gRPC service for managing administrator accounts.
-    It includes methods for registration, login, retrieval, and updates of admin details.
-    """
+class AdminInviteService(object):
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def Register(
+    def Create(
         request,
         target,
         options=(),
@@ -164,39 +143,9 @@ class AdminService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/admin.AdminService/Register",
-            admin__pb2.RegisterRequest.SerializeToString,
-            admin__pb2.RegisterResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True,
-        )
-
-    @staticmethod
-    def Login(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            "/admin.AdminService/Login",
-            admin__pb2.LoginRequest.SerializeToString,
-            admin__pb2.LoginResponse.FromString,
+            "/admin_invite.AdminInviteService/Create",
+            admin__invite__pb2.CreateRequest.SerializeToString,
+            admin__invite__pb2.CreateResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -224,9 +173,9 @@ class AdminService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/admin.AdminService/Get",
-            admin__pb2.GetRequest.SerializeToString,
-            admin__pb2.GetResponse.FromString,
+            "/admin_invite.AdminInviteService/Get",
+            admin__invite__pb2.GetRequest.SerializeToString,
+            admin__invite__pb2.GetResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -239,7 +188,7 @@ class AdminService(object):
         )
 
     @staticmethod
-    def Update(
+    def Delete(
         request,
         target,
         options=(),
@@ -254,9 +203,9 @@ class AdminService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/admin.AdminService/Update",
-            admin__pb2.UpdateRequest.SerializeToString,
-            admin__pb2.UpdateResponse.FromString,
+            "/admin_invite.AdminInviteService/Delete",
+            admin__invite__pb2.DeleteRequest.SerializeToString,
+            admin__invite__pb2.DeleteResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -284,9 +233,9 @@ class AdminService(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            "/admin.AdminService/List",
-            admin__pb2.ListRequest.SerializeToString,
-            admin__pb2.Admin.FromString,
+            "/admin_invite.AdminInviteService/List",
+            admin__invite__pb2.ListRequest.SerializeToString,
+            admin__invite__pb2.AdminInvite.FromString,
             options,
             channel_credentials,
             insecure,

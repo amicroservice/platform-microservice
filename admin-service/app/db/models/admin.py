@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from __future__ import annotations
-
 import datetime
 import re
 import uuid
@@ -126,7 +123,3 @@ class AdminRead(AdminBase):
     updated_at: datetime.datetime
 
     model_config = {"from_attributes": True}
-
-
-def admin_json_schema() -> dict:
-    return AdminRead.model_json_schema()

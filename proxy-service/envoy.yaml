@@ -43,15 +43,21 @@ static_resources:
                     - name: local_service
                       domains: ["*"]
                       routes:
+                        - match: { prefix: "/platform.PlatformService" }
+                          route:
+                            cluster: platform-service
+                            timeout: 0s
+                            max_stream_duration:
+                              grpc_timeout_header_max: 0s
                         - match: { prefix: "/admin.AdminService" }
                           route:
                             cluster: admin-service
                             timeout: 0s
                             max_stream_duration:
                               grpc_timeout_header_max: 0s
-                        - match: { prefix: "/platform.PlatformService" }
+                        - match: { prefix: "/admin_invite.AdminInviteService" }
                           route:
-                            cluster: platform-service
+                            cluster: admin-invite-service
                             timeout: 0s
                             max_stream_duration:
                               grpc_timeout_header_max: 0s
@@ -122,4 +128,23 @@ static_resources:
                     socket_address:
                       address: admin-service
                       port_value: 50051
+
+    - name: admin-invite-service
+      connect_timeout: 0.25s
+      type: logical_dns
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: admin-invite-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: admin-invite-service
+                      port_value: 50052
 

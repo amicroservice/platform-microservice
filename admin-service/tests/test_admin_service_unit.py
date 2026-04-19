@@ -16,13 +16,14 @@ import asyncio
 import datetime
 import uuid
 
-import app.proto.admin_pb2 as admin_pb2
 import bcrypt
 import jwt as pyjwt
 import pytest
+from google.rpc import code_pb2
+
+import app.proto.admin_pb2 as admin_pb2
 from app.services.admin import AdminService
 from app.utils.logger import Logger
-from google.rpc import code_pb2
 
 
 class AbortError(Exception):

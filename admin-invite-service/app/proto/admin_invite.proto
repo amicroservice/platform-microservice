@@ -1,0 +1,92 @@
+// Copyright 2024 Taufik Hidayat authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package admin_invite;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+service AdminInviteService {
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc List(ListRequest) returns (stream AdminInvite) {}
+}
+
+message CreateRequest {
+  string email = 1;
+  // platform_id is required by the service and validated server-side
+  string platform_id = 2;
+}
+
+message CreateResponse {
+  oneof response {
+    AdminInvite success = 1;
+    ValidationError error = 2;
+  }
+}
+
+message GetRequest {
+  string id = 1;
+}
+
+message GetResponse {
+  oneof response {
+    AdminInvite success = 1;
+    ValidationError error = 2;
+  }
+}
+
+message ListRequest {
+  string order_by = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+  map<string, string> filters = 4;
+}
+
+message DeleteRequest {
+  string id = 1;
+  // platform_id must be provided to scope the delete operation
+  string platform_id = 2;
+}
+
+message DeleteResponse {
+  oneof response {
+    AdminInvite success = 1;
+    ValidationError error = 2;
+  }
+}
+
+message AdminInvite {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  string email = 3;
+  string inviter_id = 4;
+  bool is_used = 5;
+  string platform_id = 6;
+}
+
+message ValidationError {
+  repeated FieldError field_errors = 1;
+  string message = 2;
+}
+
+message FieldError {
+  string field = 1;
+  string code = 2;
+  string message = 3;
+}
+

@@ -15,6 +15,7 @@
 import datetime
 from logging import Logger
 
+import asyncpg
 import jwt
 from google.protobuf import any_pb2
 from google.protobuf.json_format import ParseDict
@@ -234,7 +235,44 @@ class PlatformService(platform_pb2_grpc.PlatformServiceServicer):
                     )
                 )
 
-            new_platform = await self.platform_table.create(platform_create)
+            try:
+                new_platform = await self.platform_table.create(platform_create)
+            except asyncpg.UniqueViolationError as err:
+                self.logger.error(
+                    f"{__name__}: Unique violation creating platform - {err}"
+                )
+                detail = any_pb2.Any()
+                detail.Pack(
+                    platform_pb2.FieldError(
+                        field="domain_name",
+                        code="already_exists",
+                        message=f"Domain name {platform_create.domain_name} already exists",
+                    )
+                )
+                await context.abort_with_status(
+                    rpc_status.to_status(
+                        status_pb2.Status(
+                            code=code_pb2.ALREADY_EXISTS,
+                            message=f"Domain name {platform_create.domain_name} already exists",
+                            details=[detail],
+                        )
+                    )
+                )
+                return
+            except asyncpg.PostgresError as err:
+                self.logger.error(
+                    f"{__name__}: Error inserting platform record - {err}"
+                )
+                await context.abort_with_status(
+                    rpc_status.to_status(
+                        status_pb2.Status(
+                            code=code_pb2.INTERNAL,
+                            message="Database error",
+                        )
+                    )
+                )
+                return
+
             if new_platform is None:
                 await context.abort_with_status(
                     rpc_status.to_status(

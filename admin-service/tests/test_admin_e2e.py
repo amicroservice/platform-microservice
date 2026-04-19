@@ -16,17 +16,18 @@ import glob
 import importlib.util
 import os
 
-import app.proto.admin_pb2 as admin_pb2
-import app.proto.admin_pb2_grpc as admin_pb2_grpc
 import grpc
 import jwt as pyjwt
 import psycopg2
 import pytest
+from yoyo import get_backend, read_migrations
+
+import app.proto.admin_pb2 as admin_pb2
+import app.proto.admin_pb2_grpc as admin_pb2_grpc
 from app.db.pool import Database
 from app.db.tables.admin import AdminTable
 from app.services.admin import AdminService
 from app.utils.logger import Logger
-from yoyo import get_backend, read_migrations
 
 # Locate migrations directory relative to this test file
 migrations_dir = os.path.abspath(

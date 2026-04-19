@@ -160,9 +160,34 @@ docker-compose down
 
 ## Manual RPCs (grpcurl)
 
-Service-level RPC examples (grpcurl) are documented in each service README: 
-- For `admin-service`, see [admin-service/README.md](admin-service/README.md). 
+Service-level RPC examples (grpcurl) are documented in each service README:
+- For `admin-service`, see [admin-service/README.md](admin-service/README.md).
 - For `platform-service`, see [platform-service/README.md](platform-service/README.md).
+
+## Cross-service example & how services work together
+
+This repository includes a cross-service example (detailed, jq-based grpcurl commands) that demonstrates a complete flow:
+
+- Create a platform (requires a superadmin JWT) — `platform-service` (`platform.PlatformService/Create`).
+- Create an admin invite for that platform (requires superadmin JWT) — `admin-invite-service` (`admin_invite.AdminInviteService/Create`).
+- Register the invited admin using the invite email and `platform_id` — `admin-service` (`admin.AdminService/Register`).
+- Login the registered admin scoped to the platform to obtain a JWT — `admin-service` (`admin.AdminService/Login`).
+
+The sequence shows how services collaborate using gRPC messages and JWTs exchanged between services and clients. The example runs all `grpcurl` commands through the `proxy-service` (`proxy-service:8080`) so the proxy routes each request to the correct backend service.
+
+Key integration notes:
+
+- Authentication: superadmin-only operations (platform create and invite creation) require a token that contains `is_superadmin: true`. Use `admin.AdminService/Login` with a superadmin account to obtain this token.
+- Authorization: subsequent calls must include `authorization: Bearer <token>` metadata when required.
+- Payloads and outputs: the admin README uses `jq` to safely build JSON payloads and to extract `id` and `token` values from `grpcurl` output. This makes the flow repeatable and shell-friendly.
+- Services and responsibilities:
+	- `db-service`: Postgres database and migrations (shared storage).
+	- `platform-service`: Platform CRUD and metadata.
+	- `admin-invite-service`: Create/list/delete admin invites.
+	- `admin-service`: Register, Login, Get, Update, List admins and issue JWTs.
+	- `proxy-service`: Envoy proxy that routes gRPC requests to services using `proxy-service:8080`.
+
+For the complete, ready-to-run jq + grpcurl commands (copyable shell snippets), see the cross-service example in the `admin-service` README: [admin-service/README.md](admin-service/README.md).
 
 Useful files
 - [db-service/yoyo.ini](db-service/yoyo.ini)

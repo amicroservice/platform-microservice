@@ -19,11 +19,6 @@ from logging import Logger
 import asyncpg
 import bcrypt
 import jwt
-import proto.admin_pb2 as admin_pb2
-import proto.admin_pb2_grpc as admin_pb2_grpc
-from db.models.admin import AdminCreate, AdminUpdate
-from db.tables.admin import AdminTable
-from db.tables.admin_invites import AdminInviteTable
 from google.protobuf import any_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from google.protobuf.struct_pb2 import Struct
@@ -33,6 +28,12 @@ from grpc_status import rpc_status
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 from pydantic import ValidationError
+
+import proto.admin_pb2 as admin_pb2
+import proto.admin_pb2_grpc as admin_pb2_grpc
+from db.models.admin import AdminCreate, AdminUpdate
+from db.tables.admin import AdminTable
+from db.tables.admin_invites import AdminInviteTable
 
 tracer = trace.get_tracer(__name__)
 

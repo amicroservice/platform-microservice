@@ -75,6 +75,25 @@ services:
     networks:
       - platform-microservice
 
+  admin-invite-service:
+    build: ./admin-invite-service
+    container_name: admin-invite-service
+    volumes:
+      - ./admin-invite-service:/app
+    environment:
+      - APP_NAME=admin-invite-service
+      - GRPC_PORT=50052
+      - JWT_SECRET=secret
+      - DSN=postgresql://postgres:postgres@db-service:5432/postgres
+      - METRICS_PORT=8002
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+    ports:
+      - "8002:8002"
+    depends_on:
+      - tempo
+    networks:
+      - platform-microservice
+
   proxy-service:
     build: ./proxy-service
     container_name: proxy-service

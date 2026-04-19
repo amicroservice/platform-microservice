@@ -94,26 +94,6 @@ services:
     networks:
       - platform-microservice
 
-  user-service:
-    build: ./user-service
-    container_name: user-service
-    volumes:
-      - ./user-service:/app
-    environment:
-      - APP_NAME=user-service
-      - GRPC_PORT=50053
-      - DSN=postgresql://postgres:postgres@db-service:5432/postgres
-      - METRICS_PORT=8003
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
-      - JWT_SECRET=secret
-      - JWT_EXPIRATION_HOURS=24
-    ports:
-      - "8003:8003"
-    depends_on:
-      - tempo
-    networks:
-      - platform-microservice
-
   proxy-service:
     build: ./proxy-service
     container_name: proxy-service

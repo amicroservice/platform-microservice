@@ -25,11 +25,6 @@ Observability & tooling
 - LGTM (Loki, Grafana, Tempo, Mimir) provides logs, metrics, and traces; services use OpenTelemetry for instrumentation.
 - Recommended developer tools: `pytest`, `pytest-asyncio`, `mypy`, `ruff`, and `isort`.
 
-Envoy Gateway
-- Single gateway for gRPC traffic: we run services behind an Envoy gateway so clients have one consistent entrypoint. See `proxy-service/envoy.yaml` for the routing configuration.
-- Local development: Envoy listens on `proxy-service:8080` and forwards gRPC requests to the correct backend service, providing centralized routing and health checks. Envoy exposes admin and stats endpoints that can be used to integrate with observability tooling (for example, LGTM), but that integration is optional and not enabled by default.
-- Quick tips: use `grpcurl` against `proxy-service:8080` for manual RPCs and visit Envoy's admin UI at http://localhost:9901/clusters to inspect clusters and route health. Rebuild/restart `proxy-service` after proto or port changes.
-
 Getting started
 - See each service's README and `requirements.txt` for service-specific setup, examples, and test commands.
 
@@ -171,29 +166,25 @@ Service-level RPC examples (grpcurl) are documented in each service README:
 
 ## Cross-service example & how services work together
 
-This repository includes a cross-service example (detailed, jq-based grpcurl commands) that demonstrates complete flows across services — including `platform-service`, `admin-invite-service`, `admin-service`, and `user-service` — to show how resources, invites, and authentication travel between services:
+This repository includes a cross-service example (detailed, jq-based grpcurl commands) that demonstrates a complete flow:
 
 - Create a platform (requires a superadmin JWT) — `platform-service` (`platform.PlatformService/Create`).
 - Create an admin invite for that platform (requires superadmin JWT) — `admin-invite-service` (`admin_invite.AdminInviteService/Create`).
 - Register the invited admin using the invite email and `platform_id` — `admin-service` (`admin.AdminService/Register`).
 - Login the registered admin scoped to the platform to obtain a JWT — `admin-service` (`admin.AdminService/Login`).
-- Register a regular user scoped to the platform — `user-service` (`user.UserService/Register`). Include `platform_id` to associate the user with the platform.
-- Login the user to obtain a user-scoped JWT — `user-service` (`user.UserService/Login`).
 
 The sequence shows how services collaborate using gRPC messages and JWTs exchanged between services and clients. The example runs all `grpcurl` commands through the `proxy-service` (`proxy-service:8080`) so the proxy routes each request to the correct backend service.
 
 Key integration notes:
 
 - Authentication: superadmin-only operations (platform create and invite creation) require a token that contains `is_superadmin: true`. Use `admin.AdminService/Login` with a superadmin account to obtain this token.
-- Authorization: subsequent calls must include `authorization: Bearer <token>` metadata when required. Admin tokens are used for admin/scoped operations; user tokens are used for user-scoped requests.
-- Platform scoping: many user and admin operations accept a `platform_id` to scope accounts and resources. Provide `platform_id` in `Register`/`Login` requests when targeting a specific platform.
+- Authorization: subsequent calls must include `authorization: Bearer <token>` metadata when required.
 - Payloads and outputs: the admin README uses `jq` to safely build JSON payloads and to extract `id` and `token` values from `grpcurl` output. This makes the flow repeatable and shell-friendly.
 - Services and responsibilities:
 	- `db-service`: Postgres database and migrations (shared storage).
 	- `platform-service`: Platform CRUD and metadata.
 	- `admin-invite-service`: Create/list/delete admin invites.
 	- `admin-service`: Register, Login, Get, Update, List admins and issue JWTs.
-	- `user-service`: Register, Login, Get, Update, List users; supports platform scoping via `platform_id`.
 	- `proxy-service`: Envoy proxy that routes gRPC requests to services using `proxy-service:8080`.
 
 For the complete, ready-to-run jq + grpcurl commands (copyable shell snippets), see the cross-service example in the `admin-service` README: [admin-service/README.md](admin-service/README.md).
